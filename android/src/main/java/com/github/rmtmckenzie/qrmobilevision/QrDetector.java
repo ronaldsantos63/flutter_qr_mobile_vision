@@ -75,12 +75,7 @@ class QrDetector implements OnSuccessListener<List<Barcode>>, OnFailureListener 
             detector.process(image)
                 .addOnSuccessListener(this)
                 .addOnFailureListener(this)
-                .addOnCompleteListener(new OnCompleteListener<List<Barcode>>() {
-                    @Override
-                    public void onComplete(@NonNull Task<List<Barcode>> task) {
-                        frame.close();
-                    }
-                });
+                .addOnCompleteListener(barcodeList -> frame.close());
         }
     }
 
