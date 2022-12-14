@@ -19,12 +19,14 @@ class QrReader {
     private final Activity context;
     private final QRReaderStartedCallback startedCallback;
     private Heartbeat heartbeat;
+    private final QrReaderCallbacks communicator;
 
     QrReader(int width, int height, Activity context, BarcodeScannerOptions options,
              final QRReaderStartedCallback startedCallback, final QrReaderCallbacks communicator,
              final SurfaceTexture texture) {
         this.context = context;
         this.startedCallback = startedCallback;
+        this.communicator = communicator;
 
         if (android.os.Build.VERSION.SDK_INT >= 23) {
             Log.i(TAG, "Using new camera API.");
@@ -35,7 +37,7 @@ class QrReader {
         }
     }
 
-    void start(final int heartBeatTimeout, final int cameraDirection) throws IOException, NoPermissionException, Exception {
+    void start(final int heartBeatTimeout, final int cameraDirection, final boolean shouldStopCameraOnReadTimeout) throws IOException, NoPermissionException, Exception {
         if (!hasCameraHardware(context)) {
             throw new Exception(Exception.Reason.noHardware);
         }
@@ -43,19 +45,20 @@ class QrReader {
         if (!checkCameraPermission(context)) {
             throw new NoPermissionException();
         } else {
-            continueStarting(heartBeatTimeout, cameraDirection);
+            continueStarting(heartBeatTimeout, cameraDirection, shouldStopCameraOnReadTimeout);
         }
     }
 
-    private void continueStarting(int heartBeatTimeout, final int cameraDirection) throws IOException {
+    private void continueStarting(int heartBeatTimeout, final int cameraDirection, final boolean shouldStopCameraOnReadTimeout) throws IOException {
         try {
             if (heartBeatTimeout > 0) {
                 if (heartbeat != null) {
                     heartbeat.stop();
                 }
-                heartbeat = new Heartbeat(heartBeatTimeout, new Runnable() {
-                    @Override
-                    public void run() {
+                heartbeat = new Heartbeat(heartBeatTimeout, () -> {
+                    Log.i(TAG, "Stopping camera from Heartbeat.");
+                    communicator.qrReadTimeout();
+                    if (shouldStopCameraOnReadTimeout) {
                         stop();
                     }
                 });

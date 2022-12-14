@@ -26,7 +26,11 @@ class QrCamera extends StatefulWidget {
     WidgetBuilder? offscreenBuilder,
     ErrorCallback? onError,
     this.cameraDirection = CameraDirection.BACK,
+    this.shouldStopCameraOnReadTimeout = false,
     this.formats,
+    this.qrCodeReadTimeout = 0,
+    this.qrReadErrorCallback,
+    this.qrReadTimeoutCallback,
   })  : notStartedBuilder = notStartedBuilder ?? _defaultNotStartedBuilder,
         offscreenBuilder =
             offscreenBuilder ?? notStartedBuilder ?? _defaultOffscreenBuilder,
@@ -35,12 +39,16 @@ class QrCamera extends StatefulWidget {
 
   final BoxFit fit;
   final ValueChanged<String?> qrCodeCallback;
+  final ValueChanged<String?>? qrReadErrorCallback;
+  final VoidCallback? qrReadTimeoutCallback;
   final Widget? child;
   final WidgetBuilder notStartedBuilder;
   final WidgetBuilder offscreenBuilder;
   final ErrorCallback onError;
   final List<BarcodeFormats>? formats;
   final CameraDirection cameraDirection;
+  final int qrCodeReadTimeout;
+  final bool shouldStopCameraOnReadTimeout;
 
   static toggleFlash() {
     QrMobileVision.toggleFlash();
@@ -109,6 +117,10 @@ class QrCameraState extends State<QrCamera> with WidgetsBindingObserver {
       qrCodeHandler: widget.qrCodeCallback,
       formats: widget.formats,
       cameraDirection: widget.cameraDirection,
+      qrReadTimeoutHandler: widget.qrReadTimeoutCallback,
+      qrCodeReadErrorHandler: widget.qrReadErrorCallback,
+      qrCodeReadTimeout: widget.qrCodeReadTimeout,
+      shouldStopCameraOnReadTimeout: widget.shouldStopCameraOnReadTimeout,
     );
   }
 

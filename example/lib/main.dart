@@ -49,7 +49,9 @@ class _MyAppState extends State<MyApp> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text("Back"),
-                Switch(value: dirState, onChanged: (val) => setState(() => dirState = val)),
+                Switch(
+                    value: dirState,
+                    onChanged: (val) => setState(() => dirState = val)),
                 Text("Front"),
               ],
             ),
@@ -60,26 +62,41 @@ class _MyAppState extends State<MyApp> {
                           width: 300.0,
                           height: 600.0,
                           child: QrCamera(
-                            onError: (context, error) => Text(
-                              error.toString(),
-                              style: TextStyle(color: Colors.red),
+                            shouldStopCameraOnReadTimeout: false,
+                            qrCodeReadTimeout: 5000,
+                            qrReadTimeoutCallback: () {
+                              debugPrint('Qrcode read timeout');
+                            },
+                            qrReadErrorCallback: (error) {
+                              debugPrint('QrCode read error: $error');
+                            },
+                            onError: (context, error) => buildPortrait(
+                              child: Center(
+                                child: Text(
+                                  error.toString(),
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
                             ),
-                            cameraDirection: dirState ? CameraDirection.FRONT : CameraDirection.BACK,
+                            notStartedBuilder: (context) => buildPortrait(
+                              child: Center(
+                                child: Text("Camera Loading ..."),
+                              ),
+                            ),
+                            offscreenBuilder: (context) => buildPortrait(
+                              child: Center(
+                                child: Text("Camera Paused."),
+                              ),
+                            ),
+                            cameraDirection: dirState
+                                ? CameraDirection.FRONT
+                                : CameraDirection.BACK,
                             qrCodeCallback: (code) {
                               setState(() {
                                 qr = code;
                               });
                             },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                border: Border.all(
-                                  color: Colors.orange,
-                                  width: 10.0,
-                                  style: BorderStyle.solid,
-                                ),
-                              ),
-                            ),
+                            child: buildPortrait(),
                           ),
                         ),
                       )
@@ -98,6 +115,20 @@ class _MyAppState extends State<MyApp> {
               camState = !camState;
             });
           }),
+    );
+  }
+
+  Widget buildPortrait({Widget child}) {
+    return Container(
+      child: child,
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        border: Border.all(
+          color: Colors.orange,
+          width: 10.0,
+          style: BorderStyle.solid,
+        ),
+      ),
     );
   }
 }

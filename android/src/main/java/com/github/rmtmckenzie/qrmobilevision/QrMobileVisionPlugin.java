@@ -123,6 +123,7 @@ public class QrMobileVisionPlugin implements MethodCallHandler, QrReaderCallback
                     Integer targetHeight = methodCall.argument("targetHeight");
                     Integer cameraDirection = methodCall.argument("cameraDirection");
                     List<String> formatStrings = methodCall.argument("formats");
+                    Boolean shouldStopCameraOnReadTimeout = methodCall.argument("shouldStopCameraOnReadTimeout");
 
                     if (targetWidth == null || targetHeight == null) {
                         result.error("INVALID_ARGUMENT", "Missing a required argument", "Expecting targetWidth, targetHeight, and optionally heartbeatTimeout");
@@ -139,7 +140,8 @@ public class QrMobileVisionPlugin implements MethodCallHandler, QrReaderCallback
                     try {
                         reader.start(
                             lastHeartbeatTimeout == null ? 0 : lastHeartbeatTimeout,
-                            cameraDirection == null ? 0 : cameraDirection
+                            cameraDirection == null ? 0 : cameraDirection,
+                            shouldStopCameraOnReadTimeout != null && shouldStopCameraOnReadTimeout
                         );
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -184,6 +186,16 @@ public class QrMobileVisionPlugin implements MethodCallHandler, QrReaderCallback
     @Override
     public void qrRead(String data) {
         channel.invokeMethod("qrRead", data);
+    }
+
+    @Override
+    public void qrReadTimeout() {
+        channel.invokeMethod("qrReadTimeout", null);
+    }
+
+    @Override
+    public void qrReadError(Throwable error) {
+        channel.invokeMethod("qrReadError", stackTraceAsString(error.getStackTrace()));
     }
 
     @Override

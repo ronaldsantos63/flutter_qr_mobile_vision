@@ -90,5 +90,6 @@ class QrDetector implements OnSuccessListener<List<Barcode>>, OnFailureListener 
     @Override
     public void onFailure(@NonNull Exception e) {
         Log.w(TAG, "Barcode Reading Failure: ", e);
+        communicator.qrReadError(e);
     }
 }
